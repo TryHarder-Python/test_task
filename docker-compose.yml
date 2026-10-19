@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cache
+      POSTGRES_PASSWORD: cache
+      POSTGRES_DB: cache
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cache -d cache"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+asyncpg://cache:cache@db:5432/cache
+      TRANSFORMER_DELAY_SECONDS: ${TRANSFORMER_DELAY_SECONDS:-0.1}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
