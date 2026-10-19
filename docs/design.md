@@ -15,6 +15,7 @@ A companion CLI (`cache-cli`) exercises the service programmatically.
 - Python 3.12, managed with `uv` (`pyproject.toml` + `uv.lock`)
 - FastAPI, SQLModel on async SQLAlchemy, `asyncpg`
 - PostgreSQL 16 (the only supported database)
+- Alembic (async `env.py`) for schema migrations
 - `pydantic-settings` for service configuration and CLI parsing
 - `httpx` for the CLI client
 - `pytest`, `pytest-asyncio`, `testcontainers[postgres]` for tests; `ruff` for lint/format
@@ -25,7 +26,7 @@ A companion CLI (`cache-cli`) exercises the service programmatically.
 ```
 src/cache_service/
     config.py       Settings (DATABASE_URL, TRANSFORMER_DELAY_SECONDS)
-    db.py           async engine / session factory, table creation
+    db.py           async engine / session factory
     models.py       SQLModel tables
     schemas.py      request / response models
     transformer.py  simulated external transformer
@@ -36,6 +37,7 @@ src/cache_cli/
     settings.py     CLI argument model (pydantic-settings)
     client.py       HTTP client wrapper
     main.py         entry point
+migrations/         Alembic environment + versions
 tests/unit/         pure logic, no I/O
 tests/integration/  real Postgres via testcontainers
 ```
@@ -51,9 +53,11 @@ tests/integration/  real Postgres via testcontainers
 "same input ⇒ same identifier" a database-enforced invariant. The payload
 output is stored so `GET` is a single primary-key lookup.
 
-Tables are created with `SQLModel.metadata.create_all` at startup.
-**Shortcut:** no Alembic migrations — the schema is tiny and has no history yet;
-a real deployment would add Alembic before the first schema change.
+The schema is owned by Alembic migrations (`migrations/versions/`), with
+`SQLModel.metadata` as the autogenerate target. The application never creates
+tables itself: the container entrypoint runs `alembic upgrade head` before
+starting the server, and integration tests run the same migrations against
+their Postgres container, so the migrations themselves are exercised by tests.
 
 ## API
 
@@ -107,6 +111,7 @@ cache-cli [-h|--host URL] [-r|--repeat N] [-i|--input FILE|-] [-j|--json JSON] [
 
 - **Unit:** interleaving, hashing, schema validation, CLI settings parsing,
   CLI client against `httpx.MockTransport`.
-- **Integration:** API + service against real Postgres (testcontainers):
+- **Integration:** API + service against real Postgres (testcontainers),
+  schema created by running the Alembic migrations:
   transformer call counts (no repeated calls for cached strings, duplicates
   within one request transformed once), id reuse, 404, 422.
