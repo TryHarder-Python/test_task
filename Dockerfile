@@ -9,6 +9,8 @@ WORKDIR /app
 
 # Dependencies first, so code changes do not invalidate this (slow) layer.
 COPY pyproject.toml uv.lock ./
+# uv validates the lock against every workspace member; the CLI itself is dev-only.
+COPY cli/pyproject.toml ./cli/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev --no-install-project
 

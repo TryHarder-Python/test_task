@@ -23,8 +23,10 @@ uv run alembic revision --autogenerate -m "..."   # after changing models.py
   the ABC interface + its `SqlAlchemy…` implementation, `api.py` routes + dependencies,
   `main.py` app factory/lifespan,
   `models.py` SQLModel tables, `config.py` env settings.
-- `src/cache_cli/` — `settings.py` argument model (pydantic-settings), `client.py` httpx
-  client, `main.py` runner/entry point.
+- `cli/cache_cli/` — separate uv workspace package (`cli/pyproject.toml`), installed only
+  via the dev group so it stays out of the service image; shares no code with the service.
+  `settings.py` argument model (pydantic-settings), `client.py` httpx client, `main.py`
+  runner/entry point.
 - `migrations/` — Alembic (async env). The app never calls `create_all`.
 - `tests/unit/` (no I/O), `tests/integration/` (PostgreSQL via testcontainers),
   `tests/support.py` shared fakes (`CountingTransformer`, `InMemoryUnitOfWork`).

@@ -37,7 +37,7 @@ src/cache_service/
         unit_of_work.py                UnitOfWork (ABC) + SqlAlchemyUnitOfWork
     api.py          HTTP routes
     main.py         app factory + lifespan
-src/cache_cli/
+cli/cache_cli/   dev-only workspace package; not shipped in the service image
     settings.py     CLI argument model (pydantic-settings)
     client.py       HTTP client wrapper
     main.py         entry point

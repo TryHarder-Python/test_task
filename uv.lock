@@ -2,6 +2,12 @@ version = 1
 revision = 5
 requires-python = "==3.12.*"
 
+[manifest]
+members = [
+    "cache-cli",
+    "cache-service",
+]
+
 [[package]]
 name = "alembic"
 version = "1.20.0"
@@ -65,6 +71,23 @@ wheels = [
 ]
 
 [[package]]
+name = "cache-cli"
+version = "0.1.0"
+source = { editable = "cli" }
+dependencies = [
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.27" },
+    { name = "pydantic", specifier = ">=2.9" },
+    { name = "pydantic-settings", specifier = ">=2.6" },
+]
+
+[[package]]
 name = "cache-service"
 version = "0.1.0"
 source = { editable = "." }
@@ -72,7 +95,6 @@ dependencies = [
     { name = "alembic" },
     { name = "asyncpg" },
     { name = "fastapi" },
-    { name = "httpx" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "sqlalchemy", extra = ["asyncio"] },
@@ -82,6 +104,8 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "cache-cli" },
+    { name = "httpx" },
     { name = "pytest" },
     { name = "pytest-asyncio" },
     { name = "ruff" },
@@ -93,7 +117,6 @@ requires-dist = [
     { name = "alembic", specifier = ">=1.13" },
     { name = "asyncpg", specifier = ">=0.29" },
     { name = "fastapi", specifier = ">=0.115" },
-    { name = "httpx", specifier = ">=0.27" },
     { name = "pydantic", specifier = ">=2.9" },
     { name = "pydantic-settings", specifier = ">=2.6" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0" },
@@ -103,6 +126,8 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "cache-cli", editable = "cli" },
+    { name = "httpx", specifier = ">=0.27" },
     { name = "pytest", specifier = ">=8.3" },
     { name = "pytest-asyncio", specifier = ">=0.24" },
     { name = "ruff", specifier = ">=0.7" },
