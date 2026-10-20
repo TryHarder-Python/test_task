@@ -110,11 +110,12 @@ uv run pytest -m "not integration"
 uv run ruff check && uv run ruff format --check
 ```
 
-- `tests/unit` — pure logic: interleaving, hashing, schemas, CLI parsing,
-  CLI client and runner against `httpx.MockTransport`.
-- `tests/integration` — service and HTTP API against a real PostgreSQL started
-  by testcontainers, with the schema created by the Alembic migrations. A
-  call-counting fake transformer verifies the caching guarantees.
+- `tests/unit` — no I/O: interleaving, hashing, schemas, CLI parsing, CLI
+  client and runner against `httpx.MockTransport`, and the service's caching
+  guarantees against in-memory repositories with a call-counting transformer.
+- `tests/integration` — PostgreSQL repositories, migrations and the HTTP API
+  against a real PostgreSQL started by testcontainers, with the schema created
+  by the Alembic migrations.
   Set `TEST_DATABASE_URL` to use an existing, disposable database instead.
 
 ## Design notes and known limitations

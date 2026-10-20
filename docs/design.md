@@ -30,7 +30,10 @@ src/cache_service/
     models.py       SQLModel tables
     schemas.py      request / response models
     transformer.py  simulated external transformer
-    service.py      payload generation + caching logic
+    service.py      caching rules; orchestrates repositories, owns no SQL
+    repositories/
+        interfaces.py   Protocols: PayloadRepository, TransformCacheRepository, UnitOfWork
+        postgres.py     PostgreSQL implementations (ON CONFLICT upserts)
     api.py          HTTP routes
     main.py         app factory + lifespan
 src/cache_cli/
@@ -58,6 +61,16 @@ The schema is owned by Alembic migrations (`migrations/versions/`), with
 tables itself: the container entrypoint runs `alembic upgrade head` before
 starting the server, and integration tests run the same migrations against
 their Postgres container, so the migrations themselves are exercised by tests.
+
+## Persistence layers
+
+`PayloadService` depends only on the repository Protocols. Repositories own all
+SQL and never commit; the `UnitOfWork` groups a request's writes into one
+transaction, and the service decides when to `commit()`. The session itself is
+created and closed per request by the API dependency (`get_session` →
+`get_unit_of_work` → `get_service`); anything not committed is rolled back on
+close. This keeps the caching rules testable with in-memory fakes and the SQL
+testable on its own.
 
 ## API
 
@@ -110,8 +123,11 @@ cache-cli [-h|--host URL] [-r|--repeat N] [-i|--input FILE|-] [-j|--json JSON] [
 ## Testing
 
 - **Unit:** interleaving, hashing, schema validation, CLI settings parsing,
-  CLI client against `httpx.MockTransport`.
-- **Integration:** API + service against real Postgres (testcontainers),
-  schema created by running the Alembic migrations:
-  transformer call counts (no repeated calls for cached strings, duplicates
-  within one request transformed once), id reuse, 404, 422.
+  CLI client against `httpx.MockTransport`, and the service's caching rules
+  against in-memory repository fakes: transformer call counts (no repeated
+  calls for cached strings, duplicates within one request transformed once),
+  id reuse, commit, and the lost-race path.
+- **Integration:** against real Postgres (testcontainers), schema created by
+  running the Alembic migrations: repository SQL semantics (first writer wins,
+  visibility only after commit), migration drift check, and the HTTP API
+  end to end (201/200, 404, 422).

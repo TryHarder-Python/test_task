@@ -18,16 +18,19 @@ uv run alembic revision --autogenerate -m "..."   # after changing models.py
 ## Layout
 
 - `src/cache_service/` — `payload.py` pure rules (interleave/render/hash), `service.py`
-  caching logic, `api.py` routes + dependencies, `main.py` app factory/lifespan,
+  caching rules (no SQL), `repositories/` Protocols (`interfaces.py`) + PostgreSQL
+  implementations and unit of work (`postgres.py`), `api.py` routes + dependencies, `main.py` app factory/lifespan,
   `models.py` SQLModel tables, `config.py` env settings.
 - `src/cache_cli/` — `settings.py` argument model (pydantic-settings), `client.py` httpx
   client, `main.py` runner/entry point.
 - `migrations/` — Alembic (async env). The app never calls `create_all`.
 - `tests/unit/` (no I/O), `tests/integration/` (PostgreSQL via testcontainers),
-  `tests/support.py` shared fakes (`CountingTransformer`).
+  `tests/support.py` shared fakes (`CountingTransformer`, `InMemoryUnitOfWork`).
 
 ## Conventions
 
+- Service talks to the DB only through `UnitOfWork`; repositories never commit, the
+  service does. New queries go into a repository + its Protocol + the in-memory fake.
 - PostgreSQL only; upserts use `sqlalchemy.dialects.postgresql.insert` + `ON CONFLICT`.
 - Every model change needs a migration — `test_models_match_migrations` enforces it.
 - The transformer is injected (`api.get_transformer`); tests override it and assert call counts.
