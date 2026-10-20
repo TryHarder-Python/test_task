@@ -1,7 +1,7 @@
 import json
 import sys
 import time
-from collections.abc import Iterator, Sequence
+from collections.abc import Iterator, Mapping, Sequence
 from contextlib import contextmanager
 from typing import TextIO
 
@@ -39,8 +39,13 @@ def run(
     """
     try:
         payload = settings.load_payload(stdin)
-    except (OSError, ValidationError) as error:
-        print(f"cache-cli: invalid input: {error}", file=sys.stderr)
+    except OSError as error:
+        print(f"cache-cli: cannot read input: {error}", file=sys.stderr)
+        return EXIT_USAGE
+    except ValidationError as error:
+        print(
+            f"cache-cli: invalid input\n{_format_errors(error, fallback='input')}", file=sys.stderr
+        )
         return EXIT_USAGE
 
     try:
@@ -70,17 +75,25 @@ def run(
     return EXIT_OK
 
 
-def _format_validation_error(error: ValidationError) -> str:
-    long_names = {
-        alias: field
-        for field, info in CliSettings.model_fields.items()
-        for alias in getattr(info.validation_alias, "choices", [])
-    }
+def _option_names() -> dict[str, str]:
+    """Map field names and aliases to the long flag users actually type."""
+    names: dict[str, str] = {}
+    for field, info in CliSettings.model_fields.items():
+        aliases = [alias for alias in getattr(info.validation_alias, "choices", []) if alias]
+        flag = "--" + max(aliases or [field], key=len)
+        names |= dict.fromkeys([field, *aliases], flag)
+    return names
+
+
+def _format_errors(
+    error: ValidationError, *, fallback: str, names: Mapping[str, str] | None = None
+) -> str:
+    """Render validation errors as one terse line each, without pydantic's internals."""
     lines = []
     for detail in error.errors():
         location = ".".join(str(part) for part in detail["loc"])
-        option = long_names.get(location, location)
-        lines.append(f"  {'--' + option if option else 'arguments'}: {detail['msg']}")
+        label = (names or {}).get(location, location) or fallback
+        lines.append(f"  {label}: {detail['msg']}")
     return "\n".join(lines)
 
 
@@ -88,7 +101,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         settings = parse_args(sys.argv[1:] if argv is None else argv)
     except ValidationError as error:
-        print(f"cache-cli: invalid arguments\n{_format_validation_error(error)}", file=sys.stderr)
+        details = _format_errors(error, fallback="arguments", names=_option_names())
+        print(f"cache-cli: invalid arguments\n{details}", file=sys.stderr)
         return EXIT_USAGE
     return run(settings, stdin=sys.stdin, stdout=sys.stdout)
 

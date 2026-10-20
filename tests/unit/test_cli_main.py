@@ -87,4 +87,28 @@ def test_main_reports_invalid_stdin_payload(
     monkeypatch.setattr("sys.stdin", io.StringIO('{"list_1": ["a"]}'))
 
     assert main(["-i", "-"]) == 2
-    assert "list_2" in capsys.readouterr().err
+    assert capsys.readouterr().err == "cache-cli: invalid input\n  list_2: Field required\n"
+
+
+def test_main_reports_malformed_input_file(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    input_file = tmp_path / "payload.json"
+    input_file.write_text("{oops")
+
+    assert main(["-i", str(input_file)]) == 2
+
+    err = capsys.readouterr().err
+    assert err.startswith("cache-cli: invalid input\n  input: Invalid JSON")
+    assert "pydantic.dev" not in err
+
+
+@pytest.mark.parametrize("flag", ["-j", "--json"])
+def test_main_names_the_json_option_by_its_flag(
+    flag: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    assert main([flag, "{oops"]) == 2
+
+    err = capsys.readouterr().err
+    assert "  --json: Invalid JSON" in err
+    assert "json_payload" not in err
