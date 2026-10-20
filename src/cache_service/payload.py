@@ -3,13 +3,12 @@
 import hashlib
 import json
 from collections.abc import Iterable, Sequence
-from itertools import chain
 
 SEPARATOR = ", "
 
 
 def interleave(first: Sequence[str], second: Sequence[str]) -> list[str]:
-    return list(chain.from_iterable(zip(first, second, strict=True)))
+    return [item for pair in zip(first, second, strict=True) for item in pair]
 
 
 def render(items: Iterable[str]) -> str:

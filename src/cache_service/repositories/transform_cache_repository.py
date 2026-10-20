@@ -29,12 +29,14 @@ class TransformCacheSqlAlchemyRepository(TransformCacheRepository):
     async def get_many(self, inputs: Collection[str]) -> dict[str, str]:
         if not inputs:
             return {}
+
         statement = select(TransformCache.input, TransformCache.output).where(TransformCache.input.in_(inputs))
         return dict((await self._session.execute(statement)).all())
 
     async def add_many(self, results: Mapping[str, str]) -> None:
         if not results:
             return
+
         await self._session.execute(
             insert(TransformCache)
             .values([{"input": key, "output": value} for key, value in results.items()])
