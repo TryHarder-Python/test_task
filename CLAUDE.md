@@ -18,8 +18,10 @@ uv run alembic revision --autogenerate -m "..."   # after changing models.py
 ## Layout
 
 - `src/cache_service/` — `payload.py` pure rules (interleave/render/hash), `service.py`
-  caching rules (no SQL), `repositories/` Protocols (`interfaces.py`) + PostgreSQL
-  implementations and unit of work (`postgres.py`), `api.py` routes + dependencies, `main.py` app factory/lifespan,
+  caching rules (no SQL), `repositories/` one module per model
+  (`payload_repository.py`, `transform_cache_repository.py`, `unit_of_work.py`), each holding
+  the ABC interface + its `SqlAlchemy…` implementation, `api.py` routes + dependencies,
+  `main.py` app factory/lifespan,
   `models.py` SQLModel tables, `config.py` env settings.
 - `src/cache_cli/` — `settings.py` argument model (pydantic-settings), `client.py` httpx
   client, `main.py` runner/entry point.
@@ -30,7 +32,9 @@ uv run alembic revision --autogenerate -m "..."   # after changing models.py
 ## Conventions
 
 - Service talks to the DB only through `UnitOfWork`; repositories never commit, the
-  service does. New queries go into a repository + its Protocol + the in-memory fake.
+  service does. New queries go into the ABC (`@abstractmethod`), its `SqlAlchemy…` implementation
+  and the in-memory fake in `tests/support.py`. Interfaces are ABCs, not Protocols — no type
+  checker runs, so ABCs are what catch a missing method.
 - PostgreSQL only; upserts use `sqlalchemy.dialects.postgresql.insert` + `ON CONFLICT`.
 - Every model change needs a migration — `test_models_match_migrations` enforces it.
 - The transformer is injected (`api.get_transformer`); tests override it and assert call counts.

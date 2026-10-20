@@ -2,7 +2,7 @@ import asyncio
 from uuid import UUID
 
 from cache_service.payload import input_hash, interleave, render
-from cache_service.repositories.interfaces import UnitOfWork
+from cache_service.repositories.unit_of_work import UnitOfWork
 from cache_service.schemas import PayloadCreate
 from cache_service.transformer import Transformer
 

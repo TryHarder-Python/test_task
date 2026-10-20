@@ -5,8 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from cache_service.repositories.interfaces import UnitOfWork
-from cache_service.repositories.postgres import PostgresUnitOfWork
+from cache_service.repositories.unit_of_work import SqlAlchemyUnitOfWork, UnitOfWork
 from cache_service.schemas import PayloadCreate, PayloadCreated, PayloadRead
 from cache_service.service import PayloadService
 from cache_service.transformer import Transformer
@@ -24,7 +23,7 @@ def get_transformer(request: Request) -> Transformer:
 
 
 def get_unit_of_work(session: Annotated[AsyncSession, Depends(get_session)]) -> UnitOfWork:
-    return PostgresUnitOfWork(session)
+    return SqlAlchemyUnitOfWork(session)
 
 
 def get_service(

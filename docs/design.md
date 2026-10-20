@@ -32,8 +32,9 @@ src/cache_service/
     transformer.py  simulated external transformer
     service.py      caching rules; orchestrates repositories, owns no SQL
     repositories/
-        interfaces.py   Protocols: PayloadRepository, TransformCacheRepository, UnitOfWork
-        postgres.py     PostgreSQL implementations (ON CONFLICT upserts)
+        payload_repository.py          PayloadRepository (ABC) + SqlAlchemyPayloadRepository
+        transform_cache_repository.py  TransformCacheRepository (ABC) + SqlAlchemy implementation
+        unit_of_work.py                UnitOfWork (ABC) + SqlAlchemyUnitOfWork
     api.py          HTTP routes
     main.py         app factory + lifespan
 src/cache_cli/
@@ -64,13 +65,20 @@ their Postgres container, so the migrations themselves are exercised by tests.
 
 ## Persistence layers
 
-`PayloadService` depends only on the repository Protocols. Repositories own all
+`PayloadService` depends only on the repository interfaces. Repositories own all
 SQL and never commit; the `UnitOfWork` groups a request's writes into one
 transaction, and the service decides when to `commit()`. The session itself is
 created and closed per request by the API dependency (`get_session` →
 `get_unit_of_work` → `get_service`); anything not committed is rolled back on
 close. This keeps the caching rules testable with in-memory fakes and the SQL
 testable on its own.
+
+Each model has one module holding its interface and its implementation.
+Interfaces are ABCs rather than Protocols: the project runs no static type
+checker, so an implementation or fake that misses or misspells a method would
+go unnoticed with a Protocol, whereas an ABC refuses to instantiate it. The
+implementations are named after SQLAlchemy, but use its PostgreSQL dialect
+(`ON CONFLICT`), so they require PostgreSQL.
 
 ## API
 

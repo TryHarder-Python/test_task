@@ -6,6 +6,10 @@ from uuid import UUID, uuid4
 
 from alembic.config import Config
 
+from cache_service.repositories.payload_repository import PayloadRepository
+from cache_service.repositories.transform_cache_repository import TransformCacheRepository
+from cache_service.repositories.unit_of_work import UnitOfWork
+
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -27,7 +31,7 @@ def alembic_config(database_url: str) -> Config:
     return config
 
 
-class InMemoryPayloadRepository:
+class InMemoryPayloadRepository(PayloadRepository):
     """Dict-backed PayloadRepository; mirrors the "first writer wins" semantics."""
 
     def __init__(self) -> None:
@@ -48,7 +52,7 @@ class InMemoryPayloadRepository:
         return payload_id
 
 
-class InMemoryTransformCacheRepository:
+class InMemoryTransformCacheRepository(TransformCacheRepository):
     def __init__(self) -> None:
         self.entries: dict[str, str] = {}
 
@@ -60,7 +64,7 @@ class InMemoryTransformCacheRepository:
             self.entries.setdefault(key, value)
 
 
-class InMemoryUnitOfWork:
+class InMemoryUnitOfWork(UnitOfWork):
     """UnitOfWork fake. Writes apply immediately; transactional visibility is
     covered by the PostgreSQL repository tests instead."""
 
