@@ -4,7 +4,7 @@ from uuid import UUID
 
 import httpx
 
-from cache_service.schemas import PayloadCreate, PayloadCreated, PayloadRead
+from cache_cli.schemas import PayloadCreate, PayloadCreated, PayloadRead
 
 
 class CacheClientError(Exception):

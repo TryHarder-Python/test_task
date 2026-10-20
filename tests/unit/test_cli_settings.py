@@ -4,8 +4,8 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
+from cache_cli.schemas import PayloadCreate
 from cache_cli.settings import parse_args
-from cache_service.schemas import PayloadCreate
 
 PAYLOAD_JSON = '{"list_1": ["a"], "list_2": ["b"]}'
 PAYLOAD = PayloadCreate(list_1=["a"], list_2=["b"])

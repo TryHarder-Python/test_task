@@ -38,6 +38,7 @@ src/cache_service/
     api.py          HTTP routes
     main.py         app factory + lifespan
 cli/cache_cli/   dev-only workspace package; not shipped in the service image
+    schemas.py      API request/response models, mirrored (no import from the service)
     settings.py     CLI argument model (pydantic-settings)
     client.py       HTTP client wrapper
     main.py         entry point

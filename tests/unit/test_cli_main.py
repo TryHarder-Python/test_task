@@ -1,5 +1,7 @@
 import io
 import json
+import subprocess
+import sys
 from pathlib import Path
 from uuid import uuid4
 
@@ -120,3 +122,11 @@ def test_main_points_at_the_offending_item_inside_the_json_option(
     assert main(["-j", '{"list_1": ["ok", "bad\\u0000"], "list_2": ["b", "c"]}']) == 2
 
     assert "  --json list_1.1: Value error, must not contain NUL" in capsys.readouterr().err
+
+
+def test_cli_does_not_import_the_service() -> None:
+    # cache-cli is installed on its own, without the service package; blocking
+    # `cache_service` in a fresh interpreter catches any import that would break that.
+    code = "import sys; sys.modules['cache_service'] = None; import cache_cli.main"
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr

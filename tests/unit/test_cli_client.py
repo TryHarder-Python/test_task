@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 from cache_cli.client import CacheClient, CacheClientError
-from cache_service.schemas import PayloadCreate
+from cache_cli.schemas import PayloadCreate
 
 PAYLOAD = PayloadCreate(list_1=["a"], list_2=["b"])
 

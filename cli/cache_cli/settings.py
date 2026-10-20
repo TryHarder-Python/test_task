@@ -6,7 +6,7 @@ from typing import Self, TextIO
 from pydantic import AliasChoices, Field, HttpUrl, PositiveInt, field_validator, model_validator
 from pydantic_settings import BaseSettings, CliSettingsSource, PydanticBaseSettingsSource
 
-from cache_service.schemas import PayloadCreate
+from cache_cli.schemas import PayloadCreate
 
 STDIO = "-"
 
