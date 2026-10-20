@@ -7,8 +7,8 @@ from cache_service.repositories.payload_repository import (
     PayloadSqlAlchemyRepository,
 )
 from cache_service.repositories.transform_cache_repository import (
-    TransformCacheSqlAlchemyRepository,
     TransformCacheRepository,
+    TransformCacheSqlAlchemyRepository,
 )
 
 

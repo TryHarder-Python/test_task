@@ -30,7 +30,9 @@ class TransformCacheSqlAlchemyRepository(TransformCacheRepository):
         if not inputs:
             return {}
 
-        statement = select(TransformCache.input, TransformCache.output).where(TransformCache.input.in_(inputs))
+        statement = select(TransformCache.input, TransformCache.output).where(
+            TransformCache.input.in_(inputs)
+        )
         return dict((await self._session.execute(statement)).all())
 
     async def add_many(self, results: Mapping[str, str]) -> None:
