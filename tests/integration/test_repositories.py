@@ -3,9 +3,9 @@ from uuid import uuid4
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
 from cache_service.db import create_session_factory
-from cache_service.repositories.payload_repository import SqlAlchemyPayloadRepository
+from cache_service.repositories.payload_repository import PayloadSqlAlchemyRepository
 from cache_service.repositories.transform_cache_repository import (
-    SqlAlchemyTransformCacheRepository,
+    TransformCacheSqlAlchemyRepository,
 )
 from cache_service.repositories.unit_of_work import SqlAlchemyUnitOfWork
 
@@ -13,7 +13,7 @@ HASH = "a" * 64
 
 
 async def test_payload_added_once_per_hash(session: AsyncSession) -> None:
-    payloads = SqlAlchemyPayloadRepository(session)
+    payloads = PayloadSqlAlchemyRepository(session)
 
     payload_id = await payloads.add_if_absent(HASH, "A, B")
     duplicate = await payloads.add_if_absent(HASH, "A, B")
@@ -25,14 +25,14 @@ async def test_payload_added_once_per_hash(session: AsyncSession) -> None:
 
 
 async def test_unknown_payload_lookups_return_none(session: AsyncSession) -> None:
-    payloads = SqlAlchemyPayloadRepository(session)
+    payloads = PayloadSqlAlchemyRepository(session)
 
     assert await payloads.find_id_by_hash(HASH) is None
     assert await payloads.get_output(uuid4()) is None
 
 
 async def test_transform_cache_returns_only_stored_entries(session: AsyncSession) -> None:
-    cache = SqlAlchemyTransformCacheRepository(session)
+    cache = TransformCacheSqlAlchemyRepository(session)
     await cache.add_many({"a": "A", "b": "B"})
 
     assert await cache.get_many({"a", "b", "missing"}) == {"a": "A", "b": "B"}
@@ -41,7 +41,7 @@ async def test_transform_cache_returns_only_stored_entries(session: AsyncSession
 
 async def test_transform_cache_keeps_existing_entries(session: AsyncSession) -> None:
     # Concurrent writers may store the same input; the first result must win, not fail.
-    cache = SqlAlchemyTransformCacheRepository(session)
+    cache = TransformCacheSqlAlchemyRepository(session)
     await cache.add_many({"a": "A"})
 
     await cache.add_many({"a": "other", "b": "B"})

@@ -32,7 +32,7 @@ src/cache_service/
     transformer.py  simulated external transformer
     service.py      caching rules; orchestrates repositories, owns no SQL
     repositories/
-        payload_repository.py          PayloadRepository (ABC) + SqlAlchemyPayloadRepository
+        payload_repository.py          PayloadRepository (ABC) + PayloadSqlAlchemyRepository
         transform_cache_repository.py  TransformCacheRepository (ABC) + SqlAlchemy implementation
         unit_of_work.py                UnitOfWork (ABC) + SqlAlchemyUnitOfWork
     api.py          HTTP routes

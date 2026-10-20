@@ -22,7 +22,7 @@ class PayloadRepository(ABC):
         """Store a payload; return its id, or None when the hash is already stored."""
 
 
-class SqlAlchemyPayloadRepository(PayloadRepository):
+class PayloadSqlAlchemyRepository(PayloadRepository):
     """PostgreSQL dialect: `ON CONFLICT DO NOTHING` lets racing requests converge."""
 
     def __init__(self, session: AsyncSession) -> None:

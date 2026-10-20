@@ -20,7 +20,7 @@ class TransformCacheRepository(ABC):
         """Cache results; entries that already exist are kept unchanged."""
 
 
-class SqlAlchemyTransformCacheRepository(TransformCacheRepository):
+class TransformCacheSqlAlchemyRepository(TransformCacheRepository):
     """PostgreSQL dialect: `ON CONFLICT DO NOTHING` lets racing requests converge."""
 
     def __init__(self, session: AsyncSession) -> None:
@@ -29,9 +29,7 @@ class SqlAlchemyTransformCacheRepository(TransformCacheRepository):
     async def get_many(self, inputs: Collection[str]) -> dict[str, str]:
         if not inputs:
             return {}
-        statement = select(TransformCache.input, TransformCache.output).where(
-            TransformCache.input.in_(inputs)
-        )
+        statement = select(TransformCache.input, TransformCache.output).where(TransformCache.input.in_(inputs))
         return dict((await self._session.execute(statement)).all())
 
     async def add_many(self, results: Mapping[str, str]) -> None:
