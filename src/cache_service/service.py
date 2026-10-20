@@ -28,7 +28,7 @@ class PayloadService:
     async def create(self, request: PayloadCreate) -> tuple[UUID, bool]:
         """Return the payload identifier and whether this call created it."""
         digest = input_hash(request.list_1, request.list_2)
-        if (existing_id := await self._find_id(digest)) is not None:
+        if (existing_id := await self._find_id_by_hash(digest)) is not None:
             return existing_id, False
 
         transformed = await self._transform_all({*request.list_1, *request.list_2})
@@ -46,7 +46,7 @@ class PayloadService:
         if created_id is not None:
             return created_id, True
         # A concurrent request stored the same payload first; reuse its identifier.
-        concurrent_id = await self._find_id(digest)
+        concurrent_id = await self._find_id_by_hash(digest)
         assert concurrent_id is not None, "conflicting payload row must exist"
         return concurrent_id, False
 
@@ -54,7 +54,7 @@ class PayloadService:
         payload = await self._session.get(Payload, payload_id)
         return payload.output if payload else None
 
-    async def _find_id(self, digest: str) -> UUID | None:
+    async def _find_id_by_hash(self, digest: str) -> UUID | None:
         statement = select(Payload.id).where(Payload.input_hash == digest)
         return (await self._session.execute(statement)).scalar_one_or_none()
 

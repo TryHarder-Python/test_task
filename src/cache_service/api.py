@@ -43,6 +43,7 @@ async def create_payload(
     if not created:
         response.status_code = status.HTTP_200_OK
         return PayloadCreated(id=payload_id, message="Payload already exists")
+
     return PayloadCreated(id=payload_id, message="Payload created")
 
 
