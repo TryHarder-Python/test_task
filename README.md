@@ -53,7 +53,8 @@ Only the first iteration pays for the transformer. Interactive API docs are at
 | `GET`  | `/health`             | `200 {"status": "ok"}`                                     |                                 |
 
 Request body for `POST /payload`: `{"list_1": [...], "list_2": [...]}` — two
-non-empty lists of strings of equal length.
+non-empty lists of strings of equal length. Strings may not contain NUL
+(`\u0000`), which PostgreSQL text cannot store.
 
 ## CLI
 
