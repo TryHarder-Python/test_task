@@ -112,3 +112,11 @@ def test_main_names_the_json_option_by_its_flag(
     err = capsys.readouterr().err
     assert "  --json: Invalid JSON" in err
     assert "json_payload" not in err
+
+
+def test_main_points_at_the_offending_item_inside_the_json_option(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert main(["-j", '{"list_1": ["ok", "bad\\u0000"], "list_2": ["b", "c"]}']) == 2
+
+    assert "  --json list_1.1: Value error, must not contain NUL" in capsys.readouterr().err

@@ -89,10 +89,15 @@ def _format_errors(
     error: ValidationError, *, fallback: str, names: Mapping[str, str] | None = None
 ) -> str:
     """Render validation errors as one terse line each, without pydantic's internals."""
+    names = names or {}
     lines = []
     for detail in error.errors():
-        location = ".".join(str(part) for part in detail["loc"])
-        label = (names or {}).get(location, location) or fallback
+        head, *path = [str(part) for part in detail["loc"]] or [fallback]
+        if head in names:
+            # Errors inside an option's value (e.g. an item of --json) keep their path.
+            label = " ".join([names[head], ".".join(path)]).rstrip()
+        else:
+            label = ".".join([head, *path])
         lines.append(f"  {label}: {detail['msg']}")
     return "\n".join(lines)
 
