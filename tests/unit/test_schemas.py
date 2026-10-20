@@ -16,6 +16,8 @@ def test_accepts_lists_of_equal_length() -> None:
         (["a", "b"], ["c"]),  # different lengths
         ([], []),  # nothing to generate
         (["a"], [1]),  # not a string
+        (["nul\x00byte"], ["b"]),  # PostgreSQL text cannot store NUL
+        (["a"], ["\x00"]),
     ],
 )
 def test_rejects_invalid_lists(list_1: list, list_2: list) -> None:

@@ -73,3 +73,10 @@ async def test_post_with_lists_of_different_length_is_rejected(client: AsyncClie
     response = await client.post("/payload", json={"list_1": ["a", "b"], "list_2": ["c"]})
 
     assert response.status_code == 422
+
+
+async def test_post_with_nul_character_is_rejected_not_crashing(client: AsyncClient) -> None:
+    response = await client.post("/payload", json={"list_1": ["nul\u0000byte"], "list_2": ["b"]})
+
+    assert response.status_code == 422
+    assert "NUL" in response.text
